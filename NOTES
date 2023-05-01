@@ -1,0 +1,32 @@
+# Elastic Config
+`sudo vi /etc/sysconfig/network-scripts/ifcfg-etho0`  
+`sudo vi /etc/sysctl.conf`  
+`:%d`  
+**Change network-scripts etho0 to this**
+```  
+DEVICE=eth0
+BOOTPROTO=none
+ONBOOT=yes
+HOSTNAME=elastic0
+NM_CONTROLLED=no
+TYPE=Ethernet
+IPADDR=10.81.139.30
+GATEWAY=10.81.139.1
+PREFIX=24
+```
+**Change etc hosts file to this**  
+`sudo vi /etc/hosts`
+```  
+127.0.0.1 localhost
+10.81.139.10 repo
+10.81.139.20 sensor
+10.81.139.30 elastic0
+10.81.139.31 elastic1
+10.81.139.32 elastic2
+10.81.139.40 pipeline0
+10.81.139.41 pipeline1
+10.81.139.42 pipeline2
+10.81.139.50 kibana
+```  
+**Shelling into node cmd**
+`ssh elastic@10.81.139.223`
