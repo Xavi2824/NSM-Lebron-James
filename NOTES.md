@@ -113,4 +113,7 @@ server {
 
 
 **List ports included**  
-`sudo systemctl enable --now nginx`
+`ss -lnt`  
+
+**navigate to repo url with port 8000**  
+10.81.139:8000
