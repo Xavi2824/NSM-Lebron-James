@@ -379,6 +379,13 @@ Purpose is to get the nodes to point towards our repo container (in archive file
 `sudo update-ca-trust`  
 `sudo yum makecache fast`
 
+**from the Ubuntu host machine, copy the localCA.crt file thing from the repo device into the local machine**  
+
+`sudo scp elastic@repo:/home/elastic/certs/localCA.crt ~/localCA.crt`  
+
+**steps for navigating to the browser**  
+ get them from Bland
+
 
 
 
