@@ -261,7 +261,119 @@ gpgcheck=0
 5. `openssl genrsa -out repo.key 2048`
 6. `openssl req -new -key repo.key -out repo.csr`  
     re enter same items from step 4.   
-7.   
+
+7.  `sudo vi ~/certs/repo.ext`  
+```  authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = repo
+IP.1 = 10.81.139.10
+```  
+8. **Generate the repo certificate**  
+    `openssl x509 -req -in repo.csr -CA localCA.crt -CAkey localCA.key -CAcreateserial -out repo.crt -days 365 -sha256 -extfile repo.ext`  
+
+9. `sudo vi ~/certs/repo.ext`  
+   `sudo mv repo.crt /etc/nginx`  
+   `sudo mv repo.key /etc/nginx`  
+10. cd into conf.d  
+   `cd /etc/nginx/conf.d`  
+   navigate to nginx through browser: "repo:8000/nginx/"  
+   `sudo curl -LO http://repo:8000/nginx/proxy.conf`  
+11. Disable port http port 80 to prevent confusion.  
+   `sudo vi /etc/nginx/nginx.conf`  
+   comment out line number 39,40, and 41. "#".  
+12. `sudo vi /etc/nginx/conf.d/packages.conf ` and `sudo vi /etc/nginx/conf.d/fileshare.conf`
+  
+   Change the listening address to loopback address, 127.0.0.1:8008 for both these files above.  
+
+
+   ``` server {
+
+  listen 127.0.0.1:8008;
+
+  location / {
+
+    root /repo;
+
+    autoindex on;
+
+    index index.html index.htm;
+
+  }
+
+}
+```  
+13. Add ports 80 and 443 to the firewall.  
+    `sudo firewall-cmd --add-port={80,443}/tcp --permanent`  
+    `sudo firewall-cmd --relaod`  
+    `sudo firewall-cmd --list-all`
+
+14. Restart the nginx service.  
+    `sudo systemctl restart nginx`  
+    `sudo systemctl status nginx`  
+--- 
+---
+---
+## **Shell into the sensor for this change: MODIFYING THE /etc/yum.repos local repo file to change the baseurl to "https://repo/packages/local blah blah blah"**  
+
+`sudo vi /etc/yum.repos.d/local.repo`  
+``` [local-base]
+name=local-base
+baseurl=https://repo/packages/local-base/
+enabled=1
+gpgcheck=0
+
+[local-rocknsm-2.5]
+name=local-rocknsm-2.5
+baseurl=https://repo/packages/local-rocknsm-2.5/
+enabled=1
+gpgcheck=0
+
+[local-elasticsearch-7.x]
+name=local-elasticsearch-7.x
+baseurl=https://repo/packages/local-elastic-7.x/
+enabled=1
+gpgcheck=0
+
+[local-epel]
+name=local-epel
+baseurl=https://repo/packages/local-epel/
+enabled=1
+gpgcheck=0
+
+[local-extras]
+name=local-extras
+baseurl=https://repo/packages/local-extras/
+enabled=1
+gpgcheck=0
+
+[local-updates]
+name=local-updates
+baseurl=https://repo/packages/local-updates/
+enabled=1
+gpgcheck=0
+```  
+
+**for loop to automate every node to make same adjustment as previous step**  
+
+`for host in elastic{0..2} pipeline{0..2} kibana; do scp ~/archive/* $host:/home/elastic ; done`
+
+**Next Step is to check every node and do these commands next; every single node except REPO...will take awhile**  
+---  
+Purpose is to get the nodes to point towards our repo container (in archive file) for resources instead of to CentOS. 
+
+`mkdir ~/archive`  
+`sudo mv /etc/yum.repos.d/* ~/archive`  
+`sudo vi /etc/yum.repos.d/local.repo`
+
+
+
+
+
+
     
 
 
