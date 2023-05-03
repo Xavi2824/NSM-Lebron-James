@@ -369,6 +369,18 @@ Purpose is to get the nodes to point towards our repo container (in archive file
 `sudo mv /etc/yum.repos.d/* ~/archive`  
 `sudo vi /etc/yum.repos.d/local.repo`
 
+**Certificate stuff on the repo box**  
+
+`for host in sensor elastic{0..2} pipeline{0..2} kibana; do scp ~/certs/localCA.crt elastic@$host:/home/elastic/localCA.crt; done`  
+
+**for each node, perform these 3 steps/cmds**  
+
+`sudo mv ~/localCA.crt /etc/pki/ca-trust/source/anchors/localCA.crt`  
+`sudo update-ca-trust`  
+`sudo yum makecache fast`
+
+
+
 
 
 
