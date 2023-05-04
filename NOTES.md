@@ -407,7 +407,8 @@ gpgcheck=0
 name=local-updates
 baseurl=https://repo/packages/local-updates/
 enabled=1
-gpgcheck=0```  
+gpgcheck=0 
+```   
 
 ---  --- ------------------------------------------------
 
@@ -468,22 +469,23 @@ done
 
 /usr/sbin/ip link set dev $1 promisc on
 
-fi  
-```  
+fi  ```  
+
 10. Change the permissions of ifup-local.  
    `sudo chmod +x /sbin/ifup-local`  
 11. `sudo vi /etc/sysconfig/network-scripts/ifup`  
   At the very bottom, add this line of code under "exec" line,   
   ``` if [ -x /sbin/ifup-local ]; then
 /sbin/ifup-local ${DEVICE}
-fi
-```  
+fi```  
+
 12. `sudo vi /etc/sysconfig/network-scripts/ifcfg-eth1`  
-```DEVICE=eth1
-BOOTPROTO=none
-ONBOOT=yes
-NM_CONTROLLED=no
-TYPE=Ethernet
+```
+DEVICE=eth1  
+BOOTPROTO=none  
+ONBOOT=yes  
+NM_CONTROLLED=no  
+TYPE=Ethernet  
 ```  
 13. Do a systemctl restart of the network  
     `sudo systemctl restart network`  
@@ -564,12 +566,12 @@ TYPE=Ethernet
   Change the last line of this config file to this:  
   ```OPTIONS="--af-packet=eth1 --user suricata --group suricata "```  
   6. Go back into `vi /etc/suricata/suricata.yaml`  
-  Change line 1434: yes (change from no to yes)  
-  Change line 1452: cpu ["0-2"]  
-  Change line 1458: medium [1]  
-  Change line 1459: high [2]  
-  Change line 1460: default set to "high".  
-  Change line 1461: default set to "high"
+  Change line **1434**: yes (change from no to yes)  
+  Change line **1452**: cpu ["0-2"]  
+  Change line **1458**: medium [1]  
+  Change line **1459**: high [2]  
+  Change line **1460**: default set to "high".  
+  Change line **1461**: default set to "high"
 
 
   7. `sudo suricata-update add-source emergingthreats https://repo/fileshare/emerging.rules.tar.gz` 
