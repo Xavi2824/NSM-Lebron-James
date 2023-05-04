@@ -8,6 +8,9 @@
 **Kafka** - "Topics" for Zeek, Suricata, FSF  
     Zookeeper keeps track of all nodes that join/leave Kafka.
 # Elastic Config
+starting the kit command  
+`lxc list`  
+`lxc start --all`  
 `sudo vi /etc/sysconfig/network-scripts/ifcfg-eth0`  
 `sudo vi /etc/sysctl.conf`  
 `:%d`  
@@ -72,14 +75,14 @@ Host kibana
   HostName kibana
   User elastic 
   ``` 
-`ssh-keygen`   
+`ssh-keygen`   from the ubuntu home device (hit enter, enter, etc)
 
 **NEED FOR LOOP**  
 
 for host in sensor repo elastic{0..2} pipeline{0..2} kibana; do ssh-copy-id $host; done
 
 
-**Enable creation of File sharing**  
+**Enable creation of File sharing (ONLY IN REPO)**  
 `sudo yum install nginx`  
 
 
@@ -188,9 +191,10 @@ Installing Yum utilities cmd
 
 **SSH into the Sensor and install zeek**  
 
-`sudo yum install zeek` 
-
-**make a directory for archive**  
+`sudo yum install zeek`  
+# START HERE FOR STEP 2 AFTER SETTING UP STATIC IP FOR CONTAINERS (below!) 
+       
+**make a directory for archive in sensor**  
 
 `mkdir ~/archive`  
 `ll /etc/yum.repos.d`  
@@ -367,7 +371,47 @@ Purpose is to get the nodes to point towards our repo container (in archive file
 
 `mkdir ~/archive`  
 `sudo mv /etc/yum.repos.d/* ~/archive`  
-`sudo vi /etc/yum.repos.d/local.repo`
+`sudo vi /etc/yum.repos.d/local.repo`  
+
+```[local-base]
+name=local-base
+baseurl=https://repo/packages/local-base/
+enabled=1
+gpgcheck=0
+
+[local-rocknsm-2.5]
+name=local-rocknsm-2.5
+baseurl=https://repo/packages/local-rocknsm-2.5/
+enabled=1
+gpgcheck=0
+
+[local-elasticsearch-7.x]
+name=local-elasticsearch-7.x
+baseurl=https://repo/packages/local-elastic-7.x/
+enabled=1
+gpgcheck=0
+
+[local-epel]
+name=local-epel
+baseurl=https://repo/packages/local-epel/
+enabled=1
+gpgcheck=0
+
+[local-extras]
+name=local-extras
+baseurl=https://repo/packages/local-extras/
+enabled=1
+gpgcheck=0
+
+[local-updates]
+name=local-updates
+baseurl=https://repo/packages/local-updates/
+enabled=1
+gpgcheck=0```  
+
+---  --- ------------------------------------------------
+
+
 
 **Certificate stuff on the repo box**  
 
@@ -511,6 +555,7 @@ TYPE=Ethernet
   Change line **981,982,983**: Uncomment all 3 line items, change line **982** and **983** from "suri" to "suricata".  
   Change line **1500**: no (change from yes to no)  
   Change line **1506**: no (change from yes to no)  
+  Change line **1516**: no (change from yes to no)
   Change line **1521**: no (change from yes to no)
   Change line **1527**: no (change from yes to no)
   Change line **1536**: no (change from yes to no)  
@@ -518,12 +563,13 @@ TYPE=Ethernet
   5. `vi /etc/sysconfig/suricata`  
   Change the last line of this config file to this:  
   ```OPTIONS="--af-packet=eth1 --user suricata --group suricata "```  
-  6. Go back into `vi /etc/sysconfig/suricata`  
-  Change line 1439: yes (change from no to yes)  
-  Change line 1457: cpu ["0-2"]  
-  Change line 1464: medium [1]  
-  Change line 1465: high [2]  
-  Change line 1466: default set to "high".  
+  6. Go back into `vi /etc/suricata/suricata.yaml`  
+  Change line 1434: yes (change from no to yes)  
+  Change line 1452: cpu ["0-2"]  
+  Change line 1458: medium [1]  
+  Change line 1459: high [2]  
+  Change line 1460: default set to "high".  
+  Change line 1461: default set to "high"
 
 
   7. `sudo suricata-update add-source emergingthreats https://repo/fileshare/emerging.rules.tar.gz` 
