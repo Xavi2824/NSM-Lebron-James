@@ -626,7 +626,7 @@ making a scripts directory...cuz i felt like it.
 9. `cd /usr/share/zeek/site/scripts`  
 
 10. `sudo curl -LO https://repo/fileshare/zeek/*`  
-**YOU WILL INDIVIDUALLY CURL EACH FILE FROM THE ZEEK FILE LOCATION WITHIN THE REPOSITORY  (navigate to repo/fileshare within the browser, should have .)**  
+**YOU WILL INDIVIDUALLY CURL EACH FILE FROM THE ZEEK FILE LOCATION WITHIN THE REPOSITORY, except for local.zeek  (navigate to repo/fileshare within the browser, should have .)**  
 
 11. `cd ..`  
 
@@ -635,7 +635,10 @@ Go to bottom using "Shift g"
 
 Add this to line item **104** and **105**: `@load ./scripts/afpacket.zeek` and `@load ./scripts/extension.zeek`  
 
-Add this to line item **107**: `redef ignore_checksums = T;`  
+Add this to line item **107**: `redef ignore_checksums = T;`
+
+
+
 13. `sudo mkdir -p /data/zeek`  
 14. `sudo chown -R zeek: /data/zeek`  
     `sudo chown -R zeek: /etc/zeek`   
@@ -659,7 +662,7 @@ Add this to line item **107**: `redef ignore_checksums = T;`
 **REFER TO WORD DOCUMENT FOR CHANGES SINCE VI WANTS TO BE STUPID**  
 3. `sudo mkdir -p /data/fsf/archive`  
 
-4. `sudo chown -R fsf: /data/fsf`  
+4. `sudo chown -R fsf: /data/fsf`  **may have to repeat this step if you ever restart the fsf service**
 
 5. `sudo vi /opt/fsf/fsf-client/conf/config.py`  
 Change line item **9**: Change from 127.0.0.1 to 'localhost' (keep the comma after it).  
@@ -681,7 +684,131 @@ this command helps show the user what error is occuring with service.
     `sudo -u zeek zeekctl deploy`  
     `sudo -u zeek zeekctl status`  
 12. `cd /data/fsf`  
-    make sure that all the .log, .lock 's are there. ("dbg.lock, daemon.log, dbg.log" etc...) If they arent there you suck.
+    `cd /data/zeek`  
+    make sure that all the .log, .lock 's are there. ("dbg.lock, daemon.log, dbg.log" etc...) If they arent there you suck.  
+
+
+  ---  
+  --- 
+  --- 
+  # **DAY 5 MAY 5, 2023 NOTES**  
+
+  **Steps for installing/configuring KAFKA**  
+
+  1. **starting within pipeline0**  
+  `sudo yum install kafka zookeeper` 
+  2. `sudo mkdir -p /data/zookeeper`  
+     `sudo chown -R zookeeper: /data/zookeeper/` 
+
+  3. `sudo vi /etc/zookeeper/zoo.cfg`  
+  
+  # where zookeeper will store its data
+ dataDir=/data/zookeeper
+
+ # what port should clients like kafka connect on
+ clientPort=2181
+
+ # how many clients should be allowed to connect, 0 = unlimited
+ maxClientCnxns=0
+
+ # list of zookeeper nodes to make up the cluster
+ # First port is how followers and leaders communicate
+ # Second port is used during the election process to determine a leader
+ server.1=pipeline0:2888:3888
+ server.2=pipeline1:2888:3888
+ server.3=pipeline2:2888:3888
+
+ # more than one zookeeper node will have a unique server id.
+ # Ex.) server.1, server.2, etc..
+
+ # milliseconds in which zookeeper should consider a single tick
+ tickTime=2000
+
+ # amount of ticks a follow has to connect and sync with the leader
+ initLimit=5
+
+ # amount of ticks a follower has to sync with a leader before being dropped
+ syncLimit=2```
+
+
+
+4. `sudo touch /data/zookeeper/myid` 
+
+5. `sudo chown zookeeper: /data/zookeeper/myid`  
+
+6. `echo '1' | sudo tee /data/zookeeper/myid`  
+
+**CHANGE EACH PIPELINE FROM 1,2,3 OR for loop script wont work below.**  
+
+7. `cat /data/zookeeper/myid`  
+
+8. `sudo firewall-cmd --add-port={2181,2888,3888}/tcp --permanent`  
+
+9. `sudo firewall-cmd --reload`
+
+    Can check with `sudo firewall-cmd --list-ports`  
+
+
+**Dont start zookeeper yet! Not until you have repeated these steps up until this point on the other pipeline nodes**  
+
+10. After all pipeline nodes are configured, start zookeeper service on each one:  
+`sudo systemctl enable --now zookeeper`  
+
+`sudo systemctl status zookeeper`  
+
+11. From the ubuntu box run this for loop to help verify that I am clustered:  
+
+`for host in pipeline{0..2}; do (echo "stats" | nc $host 2181 -q 2); done`  
+
+Should show something along the lines of "follower, leader, follwer, etc..."  if not then you just suck.  
+
+**STEPS FOR INSTALLING KAFKA**  
+
+1. `sudo mkdir -p /data/kafka`
+   
+   `sudo chown kafka: /data/kafka`  
+
+2. `sudo cp /etc/kafka/server{.properties,.properties.bk}`  
+
+can check by: `cd /etc/kafka`  and looking within 
+
+3. `sudo vi /etc/kafka/server.properties`  
+
+**CHECK WORD DOC FOR NOTES CUZ HOLY SHIT THIS LOOKS BAD**  
+
+Be sure to change the "broker.id" as well as the "pipeline0" in 2 other lines for **EACH NODE**
+
+4. `sudo firewall-cmd --add-port=9092/tcp --permanent`  
+   
+   `sudo firewall-cmd --reload`  
+
+   **REPEAT THESE STEPS FOR EACH PIPELINE BEFORE CONTINUING**  
+
+5. `sudo systemctl enable --now kafka`  
+   `sudo systemctl status kafka`  
+
+6. From pipeline0 only run this script command:  
+   
+   `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --create --topic test --partitions 3 --replication-factor 3`
+
+
+   `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --list`  
+
+
+   `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --describe --topic test`  
+
+
+
+
+
+
+ 
+  
+
+ 
+
+
+  
 
 
 
