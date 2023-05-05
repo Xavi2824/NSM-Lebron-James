@@ -787,7 +787,7 @@ Be sure to change the "broker.id" as well as the "pipeline0" in 2 other lines fo
 5. `sudo systemctl enable --now kafka`  
    `sudo systemctl status kafka`  
 
-6. From pipeline0 only run this script command:  
+6. From pipeline0 only; run these set of script commands:  
    
    `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --create --topic test --partitions 3 --replication-factor 3`
 
@@ -795,7 +795,9 @@ Be sure to change the "broker.id" as well as the "pipeline0" in 2 other lines fo
    `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --list`  
 
 
-   `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --describe --topic test`  
+   `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --describe --topic test` 
+
+   `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --delete --topic test`   
 
 
 
