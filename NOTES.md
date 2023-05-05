@@ -162,11 +162,12 @@ Installing Yum utilities cmd
 `sudo yum install createrepo`  
 `sudo createrepo local-extras`  
 `cd /repo`  
-`sudo createrepo local-extras`
+`sudo vi /etc/nginx/conf.d/packages.conf`
 ---  
 **Creating a nginx config to listen on port 8008, VIA root /repo directory**  
 
-```server {
+```
+server {
   listen 8008;
   location / {
     root /repo;
@@ -294,7 +295,7 @@ IP.1 = 10.81.139.10
    Change the listening address to loopback address, 127.0.0.1:8008 for both these files above.  
 
 
-   ``` server {
+   ```server {
 
   listen 127.0.0.1:8008;
 
@@ -308,8 +309,9 @@ IP.1 = 10.81.139.10
 
   }
 
-}
-```  
+   }```  
+
+
 13. Add ports 80 and 443 to the firewall.  
     `sudo firewall-cmd --add-port={80,443}/tcp --permanent`  
     `sudo firewall-cmd --relaod`  
@@ -580,6 +582,136 @@ TYPE=Ethernet
   9. `sudo mkdir -p /data/suricata`  
   
   10. `sudo chown -R suricata:suricata /data/suricata`  
+
+  # DAY 4 MAY THE 4TH BE WITH YOU MOFO  
+
+  **STEPS FOR INSTALLING ZEEK (on sensor)**  
+
+  1. `sudo yum install zeek`
+    
+  2. `sudo yum install zeek-plugin-af_packet`   
+  allows af_packet on the nic to upload to zeek. 
+
+  3. `sudo yum install zeek-plugin-kafka`  
+
+  4. `ll /etc/zeek`  
+  5. `cat /etc/zeek/networks.cfg`  
+  6. **`sudo vi /etc/zeek/zeekctl.cfg`**  
+  Line item **67**: `LogDir = /data/zeek` 
+  Add this to Line item **68**: `lb_custom.InterfacePrefix=af_packet::`  
+  This line item entry tells Zeek to use af_packet  
+  7. **`sudo vi /etc/zeek/node.cfg`**  
+Setting up as a cluster config, right now setup as a Standalone  
+
+Line item **8-11**: comment them out (add # to each line)  
+
+
+Line item **16-31**: UNcomment each line (leave worker 2 section commented)  
+
+Add this to Line item **23**: pin_cpus=1  
+
+Line item **32**: eth1 (change from eth0 to eth1)  
+
+Add this to Line item **33**: `lb_method=custom`  
+Add this to line item **34**: `lb_procs=2`   
+Add this to line item **35**: `pin_cpus=2,3`  
+Add this to line item **36**: `env_vars=fanout_id=77`  
+
+**Bonus command to look at your cpu (not required)**  
+`lscpu -e`  
+
+8. `sudo mkdir /usr/share/zeek/site/scripts`  
+making a scripts directory...cuz i felt like it.  
+
+9. `cd /usr/share/zeek/site/scripts`  
+
+10. `sudo curl -LO https://repo/fileshare/zeek/*`  
+**YOU WILL INDIVIDUALLY CURL EACH FILE FROM THE ZEEK FILE LOCATION WITHIN THE REPOSITORY  (navigate to repo/fileshare within the browser, should have .)**  
+
+11. `cd ..`  
+
+12. `sudo vi /usr/share/zeek/site/local.zeek`  
+Go to bottom using "Shift g" 
+
+Add this to line item **104** and **105**: `@load ./scripts/afpacket.zeek` and `@load ./scripts/extension.zeek`  
+
+Add this to line item **107**: `redef ignore_checksums = T;`  
+13. `sudo mkdir -p /data/zeek`  
+14. `sudo chown -R zeek: /data/zeek`  
+    `sudo chown -R zeek: /etc/zeek`   
+    `sudo chown -R zeek: /usr/share/zeek`  
+    `sudo chown -R zeek: /usr/bin/zeek`  
+    `sudo chown -R zeek: /usr/bin/capstats`   
+    `sudo chown -R zeek: /var/spool/zeek`  
+15. `sudo /sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/zeek`  
+16. `sudo /sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/capstats`  
+17. Verify previous commands in steps 15 and 16 with:  
+`sudo getcap /usr/bin/zeek`  
+`sudo getcap /usr/bin/capstats`  
+ **IMPORTANT STEP**  
+18. `sudo -u zeek zeekctl deploy`  
+ Check status command:  
+ `sudo -u zeek zeekctl status`  
+**INSTALL FSF STEPS**  
+
+1. `sudo yum install fsf`  
+2. `sudo vi /opt/fsf/fsf-server/conf/config.py`  
+**REFER TO WORD DOCUMENT FOR CHANGES SINCE VI WANTS TO BE STUPID**  
+3. `sudo mkdir -p /data/fsf/archive`  
+
+4. `sudo chown -R fsf: /data/fsf`  
+
+5. `sudo vi /opt/fsf/fsf-client/conf/config.py`  
+Change line item **9**: Change from 127.0.0.1 to 'localhost' (keep the comma after it).  
+6. `sudo vi /usr/lib/systemd/system/fsf.service`  
+Confirm everything is ok in here (it is, who cares.)  
+7. `sudo systemctl enable fsf --now`  
+8. `journalctl -xeu <service>`  
+this command helps show the user what error is occuring with service. 
+
+9. Running a client Python script  
+`/opt/fsf/fsf-client/fsf_client.py --full interface.sh`  
+10. `cd /usr/share/zeek/site/`
+
+    `sudo vi /usr/share/zeek/site/local.zeek`   
+    go to the bottom (shift g) 
+
+    Add this to line item **106,107,108**: CHECK WORD DOCUMENT AGAIN, CUZ BULLSHIT.  
+11. `sudo -u zeek zeekctl stop`  
+    `sudo -u zeek zeekctl deploy`  
+    `sudo -u zeek zeekctl status`  
+12. `cd /data/fsf`  
+    make sure that all the .log, .lock 's are there. ("dbg.lock, daemon.log, dbg.log" etc...) If they arent there you suck.
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+ 
+
+
+
 
 
 
