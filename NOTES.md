@@ -800,9 +800,78 @@ Be sure to change the "broker.id" as well as the "pipeline0" in 2 other lines fo
    `sudo /usr/share/kafka/bin/kafka-topics.sh --bootstrap-server pipeline0:9092 --delete --topic test`   
 
 
+7. GO TO YOUR SENSOR FOR THIS:  
+`cd /usr/share/zeek/site/scripts/`  
+
+ll into this and make sure "kafka.zeek" is there.  
+
+8. go back to PIPELINE0:  
+ 
+ `sudo /usr/share/kafka/bin/kafka-topics.sh --create --zookeeper pipeline0:2181 --replication-factor 3 --partitions 3 --topic zeek-raw` 
+
+ THEN DO THIS ONE:  
+ `sudo /usr/share/kafka/bin/kafka-topics.sh --describe --zookeeper pipeline0:2181 --topic zeek-raw`     
+
+
+ 9. GO BACK TO SENSOR AND DO THIS:  
+
+ `sudo vi /usr/share/zeek/site/local.zeek`  
+
+ Add this line to the very bottom underneath the previous scripts "@load blah blah blah"  
+
+ `@load ./scripts/kafka.zeek` 
+ 
+
+
+ 
+ 
+ 10. Redploy zeek on the sensor:  
+
+`sudo -u zeek zeekctl deploy`  
+`sudo -u zeek zeekctl status`  
+
+11. Validate Streaming from pipeline0:  
+
+`sudo /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server pipeline0:9092 --topic zeek-raw`  
+
+**May have to do this step first**:  `sudo vi kafka.zeek` 
+``` 
+@load Apache/Kafka/logs-to-kafka
+
+redef Kafka::topic_name = "zeek-raw";
+redef Kafka::json_timestamps = JSON::TS_ISO8601;
+redef Kafka::tag_json = F;
+redef Kafka::kafka_conf = table(
+    ["metadata.broker.list"] = "pipeline0:9092,pipeline1:9092,pipeline2:9092");
+
+event zeek_init() &priority=-5
+{
+    for (stream_id in Log::active_streams)
+    {
+        if (|Kafka::logs_to_send| == 0 || stream_id in Kafka::logs_to_send)
+        {
+            local filter: Log::Filter = [
+                $name = fmt("kafka-%s", stream_id),
+                $writer = Log::WRITER_KAFKAWRITER,
+                $config = table(["stream_id"] = fmt("%s", stream_id))
+            ];
+
+            Log::add_filter(stream_id, filter);
+        }
+    }
+}
+```  
 
 
 
+
+
+
+
+
+12. From the sensor:  
+`sudo -u zeek zeekctl deploy`  
+Then go back into pipeline0 and run the traffic script listed in step 11, after playing traffic through ubuntu box "ping 8.8.8.8"
 
  
   
