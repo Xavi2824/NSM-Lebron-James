@@ -935,7 +935,7 @@ Then go to pipeline0 and run these to check for **suricata** and **fsf**:
  ---  
 
  
- **STEPS FOR INSTALLING ELASTICSEARCH** 
+ **STEPS FOR INSTALLING ELASTICSEARCH (single-node)** 
 
  1. Go into your elastic0 node:  
  `sudo yum install elasticsearch -y`  
@@ -968,7 +968,7 @@ discovery.type: single-node
 
 9. `sudo vi /usr/lib/systemd/system/elasticsearch.service.d/override.conf` supposed to be blank  
 
-```{Service}
+```[Service]
 LimitMEMLOCK=infinity
 ```  
 
@@ -993,7 +993,98 @@ LimitMEMLOCK=infinity
     `sudo chmod 755 /data/elasticsearch/`  
 
 13. `sudo firewall-cmd --add-port={9200,9300}/tcp --permanent`  
-    `sudo firewall-cmd --reload`
+    `sudo firewall-cmd --reload`  
+
+
+    ---  
+    --- 
+    ---  
+   
+   
+    **MULTI-NODE STEPS FOR ELASTICSEARCH (repeat previous steps, except the .yml step 4 line 949...this is the one you will change)**  
+
+
+STEP FUCKING 1. `sudo vi /etc/elasticsearch/elasticsearch.yml`  
+    Check fucking word...fuck you.
+
+STEP FUCKING 2.   
+
+`sudo chown elasticsearch: /etc/elasticsearch/elasticsearch.yml` 
+
+
+STEP FUCKING 3. `sudo systemctl daemon-reload`  
+
+STEP FUCKING 4. `sudo systemctl start elasticsearch`  
+
+If having trouble starting check with this command:  
+
+`journalctl -xeu elasticsearch`  
+
+
+
+**REPEAT THESE STEPS ON EACH ELASTIC NODE**  
+
+To test functionality run this from elastic0 (can be any node):  
+`curl elastic0:9200/_cat/nodes`
+
+---  
+---  
+---  
+
+
+**STEPS FOR SETTING UP KIBANA**  
+
+1. `sudo yum install kibana`  
+
+2. `sudo mv /etc/kibana/kibana{.yml,.yml.bk}`  
+
+3. `sudo vi /etc/kibana/kibana.yml`  
+```
+server.port: 5601
+server.host: localhost
+server.name: kibana
+elasticsearch.hosts: ["http://elastic0:9200","http://elastic1:9200","http://elastic2:9200"]  
+```  
+
+4. `sudo yum install nginx`  
+
+5. `sudo vi /etc/nginx/conf.d/kibana.con`  
+```server {
+  listen 80;
+  server_name kibana;
+  proxy_max_temp_file_size 0;
+
+  location / {
+    proxy_pass http://127.0.0.1:5601/;
+
+    proxy_redirect off;
+    proxy_buffering off;
+
+    proxy_http_version 1.1;
+    proxy_set_header Connection "Keep-Alive";
+    proxy_set_header Proxy-Connection "Keep-Alive";
+
+  }
+
+}  
+```
+
+6. `sudo vi /etc/nginx/nginx.conf`  
+Comment out those 3 lines from before (way back in day 1-2): Lines **39-41**  under "server".  
+
+7. `sudo firewall-cmd --add-port=80/tcp --permanent`  
+
+   `sudo firewall-cmd --reload`  
+
+8. `sudo systemctl enable nginx --now`  
+
+9. 
+
+
+
+
+
+
 
 
 
