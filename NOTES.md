@@ -583,6 +583,9 @@ TYPE=Ethernet
   
   10. `sudo chown -R suricata:suricata /data/suricata`  
 
+  11. Way to check to make sure suricata is functioning properly:  
+  `ll /data/suricata`   
+
   # DAY 4 MAY THE 4TH BE WITH YOU MOFO  
 
   **STEPS FOR INSTALLING ZEEK (on sensor)**  
@@ -654,7 +657,10 @@ Add this to line item **107**: `redef ignore_checksums = T;`
  **IMPORTANT STEP**  
 18. `sudo -u zeek zeekctl deploy`  
  Check status command:  
- `sudo -u zeek zeekctl status`  
+ `sudo -u zeek zeekctl status`
+---
+---
+
 **INSTALL FSF STEPS**  
 
 1. `sudo yum install fsf`  
@@ -685,7 +691,7 @@ this command helps show the user what error is occuring with service.
     `sudo -u zeek zeekctl status`  
 12. `cd /data/fsf`  
     `cd /data/zeek`  
-    make sure that all the .log, .lock 's are there. ("dbg.lock, daemon.log, dbg.log" etc...) If they arent there you suck.  
+    make sure that all the .log, .lock 's are there. ("dbg.lock, daemon.log, dbg.log, conn.log" etc...) If they arent there you suck.  
 
 
   ---  
@@ -872,6 +878,138 @@ event zeek_init() &priority=-5
 12. From the sensor:  
 `sudo -u zeek zeekctl deploy`  
 Then go back into pipeline0 and run the traffic script listed in step 11, after playing traffic through ubuntu box "ping 8.8.8.8"
+
+
+
+
+---  
+---  
+---  
+
+**DAY 6 MAY 8, 2023 NOTES (MONDAY)**  
+
+
+**STEPS FOR INSTALLING FILEBEAT**  
+
+1. From the sensor:  
+`sudo yum install filebeat -y`  
+
+2. `sudo mv /etc/filebeat/filebeat{.yml,.yml.bk}`  
+takes the filebeat.yml and replaces it with filebeat.yml.bk.
+
+3. `sudo curl -LO https://repo/fileshare/filebeat/filebeat.yml`  
+
+`cat filebeat.yml` to make sure it worked and its there.  
+
+4. `sudo vi /etc/filebeat/filebeat.yml`  
+
+Change line **34** "hosts" to include all pipeline nodes {0-2}
+
+``` hosts: ["pipeline0:9092","pipeline1:9092","pipeline2:9092"]```  
+
+5. Go over to pipeline0 and enter this command to verify that there is only one topic enabled in kafka, "zeek-raw":
+
+`sudo /usr/share/kafka/bin/kafka-topics.sh --list --zookeeper pipeline0:2181`
+
+6. Now we enable the fsf-raw and suricata-raw topics within KAFKA with these long AF commands:  
+
+`sudo /usr/share/kafka/bin/kafka-topics.sh --create --zookeeper pipeline0:2181 --replication-factor 3 --partitions 3 --topic fsf-raw`  
+
+
+
+`sudo /usr/share/kafka/bin/kafka-topics.sh --create --zookeeper pipeline0:2181 --replication-factor 3 --partitions 3 --topic suricata-raw`  
+
+Verify with first command in step 5.  
+
+7. Back to sensor node, start filebeat service but DONT enable it:  
+`sudo systemctl start filebeat`
+
+8. generate traffic in the sensor, `curl google.com`  
+Then go to pipeline0 and run these to check for **suricata** and **fsf**:  
+
+`sudo /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server pipeline0:9092 --topic suricata-raw --from-beginning`  
+
+`sudo /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server pipeline0:9092 --topic fsf-raw --from-beginning`  
+
+ ---  
+ ---  
+
+ 
+ **STEPS FOR INSTALLING ELASTICSEARCH** 
+
+ 1. Go into your elastic0 node:  
+ `sudo yum install elasticsearch -y`  
+
+ 2. `sudo mv /etc/elasticsearch/elasticsearch{.yml,.yml.bk}`  
+
+ 3. From home elastic:  
+ 
+ `sudo curl -LO https://repo/fileshare/elasticsearch/elasticsearch.yml`  
+
+ 4. `sudo vi elasticsearch.yml` steps for **single-node** Elasticsearch
+
+
+ ```cluster.name:  nsm-cluster
+node.name:  es-node-0
+path.data: /data/elasticsearch
+path.logs: /var/log/elasticsearch
+bootstrap.memory_lock: true
+http.port:9200
+network.host: _local:ipv4_
+discovery.type: single-node  
+```
+5. `sudo mv ~/elasticsearch.yml /etc/elasticsearch/`  
+
+6. `sudo chmod 640 /etc/elasticsearch/elasticsearch.yml`  
+
+7. `sudo mkdir /usr/lib/systemd/system/elasticsearch.service.d`  
+
+8. `sudo chmod 755 /usr/lib/systemd/system/elasticsearch.service.d`  
+
+9. `sudo vi /usr/lib/systemd/system/elasticsearch.service.d/override.conf` supposed to be blank  
+
+```{Service}
+LimitMEMLOCK=infinity
+```  
+
+10. `sudo chmod 644 /usr/lib/systemd/system/elasticsearch.service.d/override.conf`  
+
+    `sudo systemctl daemon-reload`  
+
+11. Allocating memory properly for elasticsearch (not doing this can lead to poor kit performance).  
+
+`sudo vi /etc/elasticsearch/jvm.options.d/jvm_override.conf`  
+
+``` 
+-Xms2g
+-Xmx2g
+```
+
+
+12. `sudo mkdir -p /data/elasticsearch`  
+    
+    `sudo chown elasticsearch: /data/elasticsearch/`  
+    
+    `sudo chmod 755 /data/elasticsearch/`  
+
+13. `sudo firewall-cmd --add-port={9200,9300}/tcp --permanent`  
+    `sudo firewall-cmd --reload`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  
   
