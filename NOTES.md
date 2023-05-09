@@ -1078,7 +1078,20 @@ Comment out those 3 lines from before (way back in day 1-2): Lines **39-41**  un
 
 8. `sudo systemctl enable nginx --now`  
 
-9. 
+9. navigate to kibana via browser using the full ip address "10.81.139.50"  
+
+10. `sudo curl -LO https://repo/fileshare/kibana/ecskibana.tar.gz` 
+
+11. `tar -zxvf ecskibana.tar.gz`  
+Uncompresses file
+
+12. `sudo yum install jq -y`  
+
+13. `sudo ./import-index-templates.sh http://elastic0:9200`  
+
+Pushes over our indexes to pipeline0.
+
+
 
 
 
