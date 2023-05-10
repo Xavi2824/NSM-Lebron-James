@@ -1150,6 +1150,8 @@ you can run this on the pipeline0:
 
 After that navigate to the discover page to make sure stuff is populating.  
 
+To enable dank mode, click on "Stack Management" then on "Advanced Settings in the bottom left and find enable dark mode.  
+
 
 
 
