@@ -19,10 +19,10 @@ starting the kit command
 DEVICE=eth0
 BOOTPROTO=none
 ONBOOT=yes
-HOSTNAME=elastic0
+HOSTNAME=elastic
 NM_CONTROLLED=no
 TYPE=Ethernet
-IPADDR=10.81.139.42
+IPADDR=10.81.139.31
 GATEWAY=10.81.139.1
 PREFIX=24
 ```
@@ -557,8 +557,7 @@ TYPE=Ethernet
   Change line **580**: eth1 (change from eth0 to eth1)  
   Change line **582**: threads: 3 (remove pound/comment sign and change from auto to 3)  
   Change line **981,982,983**: Uncomment all 3 line items, change line **982** and **983** from "suri" to "suricata".  
-  Change line **1500**: no (change from yes to no)  
-  Change line **1506**: no (change from yes to no)  
+  Change line **1500**: no (change from yes to no)    
   Change line **1516**: no (change from yes to no)
   Change line **1521**: no (change from yes to no)
   Change line **1527**: no (change from yes to no)
@@ -613,7 +612,7 @@ Line item **16-31**: UNcomment each line (leave worker 2 section commented)
 
 Add this to Line item **23**: pin_cpus=1  
 
-Line item **32**: eth1 (change from eth0 to eth1)  
+Line item **32/31**: eth1 (change from eth0 to eth1)  
 
 Add this to Line item **33**: `lb_method=custom`  
 Add this to line item **34**: `lb_procs=2`   
@@ -656,12 +655,16 @@ Add this to line item **107**: `redef ignore_checksums = T;`
 `sudo getcap /usr/bin/capstats`  
  **IMPORTANT STEP**  
 18. `sudo -u zeek zeekctl deploy`  
- Check status command:  
- `sudo -u zeek zeekctl status`
+ Check status command (the -u is to make sure you are running this as a user):  
+ `sudo -u zeek zeekctl status`  
+
+ Checking for functionality in zeek:  
+ `ll /data/zeek/current`  
+ `cat /data/zeek/current/conn.log`
 ---
 ---
 
-**INSTALL FSF STEPS**  
+**INSTALL FSF STEPS (sensor)**  
 
 1. `sudo yum install fsf`  
 2. `sudo vi /opt/fsf/fsf-server/conf/config.py`  
@@ -677,8 +680,7 @@ Confirm everything is ok in here (it is, who cares.)
 7. `sudo systemctl enable fsf --now`  
 8. `journalctl -xeu <service>`  
 this command helps show the user what error is occuring with service. 
-
-9. Running a client Python script  
+9. Running a client Python script (use this to verify that fsf is working; the idea is to to scan any file) 
 `/opt/fsf/fsf-client/fsf_client.py --full interface.sh`  
 10. `cd /usr/share/zeek/site/`
 
@@ -691,7 +693,7 @@ this command helps show the user what error is occuring with service.
     `sudo -u zeek zeekctl status`  
 12. `cd /data/fsf`  
     `cd /data/zeek`  
-    make sure that all the .log, .lock 's are there. ("dbg.lock, daemon.log, dbg.log, conn.log" etc...) If they arent there you suck.  
+    make sure that all the .log, .lock 's are there. ("dbg.lock, daemon.log, dbg.log, conn.log, **ROCKOUT.LOG**" etc...) If they arent there you suck.  
 
 
   ---  
@@ -708,7 +710,7 @@ this command helps show the user what error is occuring with service.
 
   3. `sudo vi /etc/zookeeper/zoo.cfg`  
   
-  # where zookeeper will store its data
+ # where zookeeper will store its data
  dataDir=/data/zookeeper
 
  # what port should clients like kafka connect on
@@ -742,7 +744,7 @@ this command helps show the user what error is occuring with service.
 
 5. `sudo chown zookeeper: /data/zookeeper/myid`  
 
-6. `echo '1' | sudo tee /data/zookeeper/myid`  
+6. `echo '2' | sudo tee /data/zookeeper/myid`  
 
 **CHANGE EACH PIPELINE FROM 1,2,3 OR for loop script wont work below.**  
 
@@ -935,7 +937,7 @@ Then go to pipeline0 and run these to check for **suricata** and **fsf**:
  ---  
 
  
- **STEPS FOR INSTALLING ELASTICSEARCH (single-node)** 
+ **STEPS FOR INSTALLING ELASTICSEARCH (multi-node)** 
 
  1. Go into your elastic0 node:  
  `sudo yum install elasticsearch -y`  
@@ -946,17 +948,10 @@ Then go to pipeline0 and run these to check for **suricata** and **fsf**:
  
  `sudo curl -LO https://repo/fileshare/elasticsearch/elasticsearch.yml`  
 
- 4. `sudo vi elasticsearch.yml` steps for **single-node** Elasticsearch
+ 4. `sudo vi /etc/elasticsearch/elasticsearch.yml` steps for **single-node** Elasticsearch
 
 
- ```cluster.name:  nsm-cluster
-node.name:  es-node-0
-path.data: /data/elasticsearch
-path.logs: /var/log/elasticsearch
-bootstrap.memory_lock: true
-http.port:9200
-network.host: _local:ipv4_
-discovery.type: single-node  
+ ```Check WORD  
 ```
 5. `sudo mv ~/elasticsearch.yml /etc/elasticsearch/`  
 
@@ -1005,11 +1000,13 @@ LimitMEMLOCK=infinity
 
 
 STEP FUCKING 1. `sudo vi /etc/elasticsearch/elasticsearch.yml`  
-    Check fucking word...fuck you.
+    Check word.
 
 STEP FUCKING 2.   
 
 `sudo chown elasticsearch: /etc/elasticsearch/elasticsearch.yml` 
+`sudo chown -R root:elasticsearch elasticsearch.yml` 
+if not letting you, then force it with `sudo -s` .
 
 
 STEP FUCKING 3. `sudo systemctl daemon-reload`  
@@ -1025,7 +1022,9 @@ If having trouble starting check with this command:
 **REPEAT THESE STEPS ON EACH ELASTIC NODE**  
 
 To test functionality run this from elastic0 (can be any node):  
-`curl elastic0:9200/_cat/nodes`
+`curl elastic0:9200/_cat/nodes`  
+
+`curl elastic0:9200/_cat/nodes?v`
 
 ---  
 ---  
