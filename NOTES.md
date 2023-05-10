@@ -1005,7 +1005,7 @@ STEP FUCKING 1. `sudo vi /etc/elasticsearch/elasticsearch.yml`
 STEP FUCKING 2.   
 
 `sudo chown elasticsearch: /etc/elasticsearch/elasticsearch.yml` 
-`sudo chown -R root:elasticsearch elasticsearch.yml` 
+`sudo chown -R root:elasticsearch elasticsearch.yml`   
 if not letting you, then force it with `sudo -s` .
 
 
@@ -1031,7 +1031,7 @@ To test functionality run this from elastic0 (can be any node):
 ---  
 
 
-**STEPS FOR SETTING UP KIBANA**  
+**STEPS FOR SETTING UP KIBANA (SWITCH TO KIBANA NODE)**  
 
 1. `sudo yum install kibana`  
 
@@ -1047,7 +1047,7 @@ elasticsearch.hosts: ["http://elastic0:9200","http://elastic1:9200","http://elas
 
 4. `sudo yum install nginx`  
 
-5. `sudo vi /etc/nginx/conf.d/kibana.con`  
+5. `sudo vi /etc/nginx/conf.d/kibana.conf`  
 ```server {
   listen 80;
   server_name kibana;
@@ -1077,6 +1077,11 @@ Comment out those 3 lines from before (way back in day 1-2): Lines **39-41**  un
 
 8. `sudo systemctl enable nginx --now`  
 
+   `sudo systemctl enable kibana --now`  
+
+   **Give kibana a few minutes to load up before accessing the website** 
+
+
 9. navigate to kibana via browser using the full ip address "10.81.139.50"  
 
 10. `sudo curl -LO https://repo/fileshare/kibana/ecskibana.tar.gz` 
@@ -1089,6 +1094,17 @@ Uncompresses file
 13. `sudo ./import-index-templates.sh http://elastic0:9200`  
 
 Pushes over our indexes to pipeline0.
+
+---  
+---  
+---  
+
+
+# **DAY 8 MAY 10, 2023**  
+
+**STEPS FOR SETTING UP LOGSTASH**  
+
+1. 
 
 
 
