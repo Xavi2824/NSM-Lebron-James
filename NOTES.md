@@ -1104,7 +1104,63 @@ Pushes over our indexes to pipeline0.
 
 **STEPS FOR SETTING UP LOGSTASH**  
 
-1. 
+1. Starting from pipeline0:  
+`sudo yum install logstash -y`  
+
+2. `sudo curl -LO https://repo/fileshare/logstash/logstash.tar.gz`  
+
+3. `sudo tar -zxvf logstash.tar.gz -C /etc/logstash`  
+
+4. `sudo chown logstash: /etc/logstash/conf.d/*`  
+
+5. `sudo chmod -R 744 /etc/logstash/conf.d/ruby`  
+
+6. `cd /etc/logstash/conf.d/`  
+   `ll`  
+   To check inside and make sure its populated with log entries.  
+
+7. `sudo vi logstash-100-input-kafka-zeek.conf`  
+Within this config, enter this within escape mode:  
+
+```%s/127.0.0.1:9092/pipeline0:9092,pipeline1:9092,pipeline2:9092/g```  OR  
+
+you can run this on the pipeline0:  
+
+`sudo sed -i s/127.0.0.1:9092/pipeline0:9092,pipeline1:9092,pipeline2:9092/g logstash-100-input-kafka-{suricata,fsf,zeek}.conf`  
+
+8.  `sudo vi logstash-9999-output-elasticsearch.conf`  
+
+**Within this directory** you can run this command outside the config and on the pipeline0 node:  
+
+`sudo sed -i 's/"127.0.0.1"/"elastic0", "elastic1", "elastic2"/g' logstash-9999-output-elasticsearch.conf`  
+
+9. Can run this command to test your output/verify everything is working:  
+
+`sudo -u logstash /usr/share/logstash/bin/logstash -t --path.settings /etc/logstash`  
+
+---  
+---  
+---  
+
+**REPEAT THESE PREVIOUS STEPS ONCE YOU REACH THIS POINT ON EACH PIPELINE NODE**  
+
+10. `sudo systemctl enable logstash --now` 
+
+11. Go to Kibana webpage; navigate to stack management--index patterns. **(Keep in mind that logstash service takes a while to fully load up).**  Generate index patterns for Suricata, Zeek, and FSF (check word document for screenshot).  
+
+After that navigate to the discover page to make sure stuff is populating.  
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

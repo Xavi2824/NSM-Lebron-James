@@ -1,0 +1,34 @@
+# **NOTES FOR TESTING FUNCTIONALITY**  
+
+Lists topics (Should have Suricta, fsf, and zeek)  
+
+`sudo /usr/share/kafka/bin/kafka-topics.sh --list --zookeeper pipeline0:2181`  
+--- 
+---  
+--- 
+Creates fsf-raw topic  
+
+
+`sudo /usr/share/kafka/bin/kafka-topics.sh --create --zookeeper pipeline0:2181 --replication-factor 3 --partitions 3 --topic fsf-raw` 
+
+---  
+---  
+
+
+Creates suricata-raw topic  
+
+
+`sudo /usr/share/kafka/bin/kafka-topics.sh --create --zookeeper pipeline0:2181 --replication-factor 3 --partitions 3 --topic suricata-raw`  
+
+
+
+
+
+
+**ROCKNSM TROUBLESHOOTING TIPS**  
+
+Check KIBANA FIRST within the node via systemctl status, then check the yaml config file for any mistakes. 
+
+Zeek not populating in kibana, so we curled a webpage in sensor to see if zeek is populating.  
+
+Ended up looking within the kafka.zeek config and found issue. Verify by curling another webpage and checking zeek logs in kibana. 
