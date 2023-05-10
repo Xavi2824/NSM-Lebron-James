@@ -32,3 +32,14 @@ Check KIBANA FIRST within the node via systemctl status, then check the yaml con
 Zeek not populating in kibana, so we curled a webpage in sensor to see if zeek is populating.  
 
 Ended up looking within the kafka.zeek config and found issue. Verify by curling another webpage and checking zeek logs in kibana. 
+
+On pipeline try the bootstrap script:  
+
+`sudo /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server pipeline0:9092 --topic suricata-raw --from-beginning`  
+
+and/or  
+
+`sudo /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server pipeline0:9092 --topic fsf-raw --from-beginning`  
+
+**Do the same for the other 2 pipeline nodes and then remember to restart logstash on each node as well** (remember that logstash takes 5-10min to startup completely...give kibana time.)
+
