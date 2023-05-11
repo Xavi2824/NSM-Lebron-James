@@ -22,7 +22,7 @@ ONBOOT=yes
 HOSTNAME=elastic
 NM_CONTROLLED=no
 TYPE=Ethernet
-IPADDR=10.81.139.31
+IPADDR=10.81.139.40
 GATEWAY=10.81.139.1
 PREFIX=24
 ```
@@ -948,7 +948,7 @@ Then go to pipeline0 and run these to check for **suricata** and **fsf**:
  
  `sudo curl -LO https://repo/fileshare/elasticsearch/elasticsearch.yml`  
 
- 4. `sudo vi /etc/elasticsearch/elasticsearch.yml` steps for **single-node** Elasticsearch
+ 4. `sudo vi /etc/elasticsearch/elasticsearch.yml` steps for **multi-node** Elasticsearch
 
 
  ```Check WORD  
@@ -999,19 +999,16 @@ LimitMEMLOCK=infinity
     **MULTI-NODE STEPS FOR ELASTICSEARCH (repeat previous steps, except the .yml step 4 line 949...this is the one you will change)**  
 
 
-STEP FUCKING 1. `sudo vi /etc/elasticsearch/elasticsearch.yml`  
-    Check word.
-
-STEP FUCKING 2.   
+STEP FUCKING 1.   
 
 `sudo chown elasticsearch: /etc/elasticsearch/elasticsearch.yml` 
 `sudo chown -R root:elasticsearch elasticsearch.yml`   
 if not letting you, then force it with `sudo -s` .
 
 
-STEP FUCKING 3. `sudo systemctl daemon-reload`  
+STEP FUCKING 2. `sudo systemctl daemon-reload`  
 
-STEP FUCKING 4. `sudo systemctl start elasticsearch`  
+STEP FUCKING 3. `sudo systemctl start elasticsearch`  
 
 If having trouble starting check with this command:  
 
