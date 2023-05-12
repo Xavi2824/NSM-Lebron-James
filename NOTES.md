@@ -22,7 +22,7 @@ ONBOOT=yes
 HOSTNAME=elastic
 NM_CONTROLLED=no
 TYPE=Ethernet
-IPADDR=10.81.139.40
+IPADDR=10.81.139.20
 GATEWAY=10.81.139.1
 PREFIX=24
 ```
@@ -568,7 +568,7 @@ TYPE=Ethernet
   ```OPTIONS="--af-packet=eth1 --user suricata --group suricata "```  
   6. Go back into `vi /etc/suricata/suricata.yaml`  
   Change line **1434**: yes (change from no to yes)  
-  Change line **1452**: cpu ["0-2"]  
+  Change line **1452**: cpu [0]  
   Change line **1458**: medium [1]  
   Change line **1459**: high [2]  
   Change line **1460**: default set to "high".  
@@ -744,7 +744,7 @@ this command helps show the user what error is occuring with service.
 
 5. `sudo chown zookeeper: /data/zookeeper/myid`  
 
-6. `echo '2' | sudo tee /data/zookeeper/myid`  
+6. `echo '3' | sudo tee /data/zookeeper/myid`  
 
 **CHANGE EACH PIPELINE FROM 1,2,3 OR for loop script wont work below.**  
 
@@ -842,7 +842,7 @@ ll into this and make sure "kafka.zeek" is there.
 
 `sudo /usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server pipeline0:9092 --topic zeek-raw`  
 
-**May have to do this step first**:  `sudo vi kafka.zeek` 
+**May have to do this step first (from the sensor)**:  `sudo vi kafka.zeek` 
 ``` 
 @load Apache/Kafka/logs-to-kafka
 
@@ -953,7 +953,7 @@ Then go to pipeline0 and run these to check for **suricata** and **fsf**:
 
  ```Check WORD  
 ```
-5. `sudo mv ~/elasticsearch.yml /etc/elasticsearch/`  
+5. `STEP HAS BEEN REMOVED`  
 
 6. `sudo chmod 640 /etc/elasticsearch/elasticsearch.yml`  
 
@@ -1000,15 +1000,15 @@ LimitMEMLOCK=infinity
 
 
 STEP FUCKING 1.   
-
-`sudo chown elasticsearch: /etc/elasticsearch/elasticsearch.yml` 
+ 
 `sudo chown -R root:elasticsearch elasticsearch.yml`   
 if not letting you, then force it with `sudo -s` .
 
 
 STEP FUCKING 2. `sudo systemctl daemon-reload`  
 
-STEP FUCKING 3. `sudo systemctl start elasticsearch`  
+STEP FUCKING 3. `sudo systemctl start elasticsearch` 
+                `sudo systemctl enable elasticsearch --now`
 
 If having trouble starting check with this command:  
 
@@ -1089,6 +1089,8 @@ Uncompresses file
 12. `sudo yum install jq -y`  
 
 13. `sudo ./import-index-templates.sh http://elastic0:9200`  
+Do this command from within the directory that this template was curled from. 
+     `cd ~/elastic/ecskibana`
 
 Pushes over our indexes to pipeline0.
 
@@ -1121,13 +1123,13 @@ Within this config, enter this within escape mode:
 
 ```%s/127.0.0.1:9092/pipeline0:9092,pipeline1:9092,pipeline2:9092/g```  OR  
 
-you can run this on the pipeline0:  
+you can run this on whichever pipeline node you're on:  
 
 `sudo sed -i s/127.0.0.1:9092/pipeline0:9092,pipeline1:9092,pipeline2:9092/g logstash-100-input-kafka-{suricata,fsf,zeek}.conf`  
 
 8.  `sudo vi logstash-9999-output-elasticsearch.conf`  
 
-**Within this directory** you can run this command outside the config and on the pipeline0 node:  
+**Either Within this directory**  you can run this command outside the config and on the pipeline0 node:  
 
 `sudo sed -i 's/"127.0.0.1"/"elastic0", "elastic1", "elastic2"/g' logstash-9999-output-elasticsearch.conf`  
 
